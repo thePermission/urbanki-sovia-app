@@ -5,5 +5,5 @@ enableCORS = false
 enableXsrfProtection = false
 
 [browser]
-serverAddress = "localhost"
+#serverAddress = "localhost"
 gatherUsageStats = false
