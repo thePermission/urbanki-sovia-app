@@ -1,0 +1,22 @@
+[project]
+name = "sovia"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb",
+    "filepath>=0.1",
+    "httpx>=0.28.1",
+    "opencv-python>=4.12.0.88",
+    "shapely>=2.1.2",
+    "streamlit>=1.51.0",
+    "streamlit-folium>=0.25.3",
+    "torch>=2.9.0",
+    "torchvision>=0.24.0",
+]
+
+
+[build-system]
+requires = ["uv_build>=0.6.6,<0.7"]
+build-backend = "uv_build"
