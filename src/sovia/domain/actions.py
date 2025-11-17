@@ -31,8 +31,8 @@ def finde_neue_daecher(name: str):
     print(f"Hausumringe geladen: {time.time() - start}")
     _prepare_dataset(hausumringe)
     hausumringe = _process_in_threads(hausumringe)
-    print(hausumringe.columns)
-    return hausumringe[hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
+    print(f"Gesamtzeit: {time.time() - start}")
+    return hausumringe#[hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
 
 
 def _prepare_dataset(df: DataFrame):
