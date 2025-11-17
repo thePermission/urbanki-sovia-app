@@ -1,9 +1,11 @@
+import os
 import time
 from io import BytesIO
+from pathlib import Path
 
 import cv2
-import httpx as requests
 import numpy as np
+import requests
 import shapely.wkt
 import torch
 from PIL import Image
@@ -13,29 +15,55 @@ from torchvision import transforms
 
 
 class ImageLoader:
+
+    img_cache_path = Path(__file__).parent.parent / "data/img_cache"
     image_size = (224, 224)
 
-    def __init__(self):
+    def __init__(self, years: list[int]):
+        self._init_dirs(years)
         self.transformer = transforms.Compose([
             transforms.Resize(self.image_size),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
 
-    def load(self, link_1, link_2, geom) -> tuple[Tensor, Tensor]:
-        image_1 = self._download_from_url(link_1)
-        image_2 = self._download_from_url(link_2)
+    def _init_dirs(self, years: list[int]):
+        if not os.path.isdir(self.img_cache_path):
+            os.mkdir(self.img_cache_path)
+        for year in years:
+            if not os.path.isdir(self.img_cache_path / str(year)):
+                os.mkdir(self.img_cache_path / str(year))
+
+    def load(self, oi, year_1, link_1, year_2, link_2, geom) -> tuple[Tensor, Tensor]:
+        image_1 = self._load_image(oi, year_1, link_1)
+        image_2 = self._load_image(oi, year_2, link_2)
         mask_tensor = self._prepare_mask(geom)
         return self._prepare_image(image_1, mask_tensor), self._prepare_image(image_2, mask_tensor)
 
-    def _download_from_url(self, link: str) -> ImageFile:
+    def _load_img_from_file(self, polygon_id: str, year: str) -> ImageFile:
+        return Image.open(self._get_filepath(polygon_id, year))
+
+    def _load_image(self, polygon_id, year, link) -> ImageFile:
+        if not self._file_exists(polygon_id, year):
+            self._download_from_url(polygon_id, year, link)
+        return self._load_img_from_file(polygon_id, year)
+
+    def _file_exists(self, polygon_id: str, year: str):
+        return os.path.isfile(self._get_filepath(polygon_id, str(year)))
+
+    def _get_filepath(self, polygon_id: str, year: str) -> Path:
+        return self.img_cache_path / str(year) / f"{polygon_id}.png"
+
+    def _download_from_url(self, polygon_id: str, year: str, link: str):
         while True:
             try:
-                response = requests.get(link)
+                response = requests.get(link, stream=True, timeout=5)
                 response.raise_for_status()
-                return Image.open(BytesIO(response.content))
+                image = Image.open(BytesIO(response.content))
+                image.save(self._get_filepath(polygon_id, year))
+                break
             except Exception as e:
-                print("Bild konnte nicht geladen werden.")
+                print("Bild konnte nicht geladen werden.", e, link)
                 time.sleep(1)
 
     def _prepare_mask(self, polygon_points: str, activation_value=255) -> Tensor:
