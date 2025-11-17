@@ -127,7 +127,7 @@ def _klassifiziere_row(model, row):
             return distance.item()
     except Exception as e:
         print(e)
-        return float(99999)
+        return float(0)
 
 
 if __name__ == "__main__":
