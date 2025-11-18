@@ -121,7 +121,7 @@ def _klassifiziere(df: DataFrame):
 def _klassifiziere_row(model, row):
     try:
         with torch.no_grad():
-            output1, output2 = model(row["imgs"][0].unsqueeze(0), row["imgs"][0].unsqueeze(0))
+            output1, output2 = model(row["imgs"][0].unsqueeze(0), row["imgs"][1].unsqueeze(0))
             distance = nn.functional.pairwise_distance(output1, output2)
             # Verwende .item() auf dem detached Tensor
             return distance.item()
