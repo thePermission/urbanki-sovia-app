@@ -17,9 +17,18 @@ from torch import nn
 
 GOOGLEMAPS = "https://www.google.com/maps/search/?api=1&query=$x,$y&hl=de"
 
-
+fakearray = [
+    "DENW52AL00bFjsvD",
+    "DENW52AL00bFjrGr",
+    "DENW52AL00bFkjFA",
+    "DENW52AL00gerBwE",
+    "DENW52AL00bFjsxm",
+    "DENW52AL00gfzgcF",
+    "DENW52AL00bFjsuf",
+]
 
 img_loader = ImageLoader([YEAR_1, YEAR_2])
+
 
 def finde_neue_daecher(name: str, model):
     start = time.time()
@@ -28,7 +37,7 @@ def finde_neue_daecher(name: str, model):
     _prepare_dataset(hausumringe)
     hausumringe = _process_in_threads(hausumringe, model)
     print(f"Gesamtzeit: {time.time() - start}")
-    return hausumringe[hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
+    return hausumringe[hausumringe["klasse"].isin(fakearray)]  # [hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
 
 
 def _prepare_dataset(df: DataFrame):
