@@ -15,20 +15,12 @@ from sovia.infra.DatabaseConnector import get_hausumringe_in
 from sovia.infra.ImageLoader import ImageLoader
 from torch import nn
 
+from sovia.infra.SiameseNeuralNetwork import load_model
+
 GOOGLEMAPS = "https://www.google.com/maps/search/?api=1&query=$x,$y&hl=de"
 
-fakearray = [
-    "DENW52AL00bFjsvD",
-    "DENW52AL00bFjrGr",
-    "DENW52AL00bFkjFA",
-    "DENW52AL00gerBwE",
-    "DENW52AL00bFjsxm",
-    "DENW52AL00gfzgcF",
-    "DENW52AL00bFjsuf",
-]
 
 img_loader = ImageLoader([YEAR_1, YEAR_2])
-
 
 def finde_neue_daecher(name: str, model):
     start = time.time()
@@ -37,7 +29,7 @@ def finde_neue_daecher(name: str, model):
     _prepare_dataset(hausumringe)
     hausumringe = _process_in_threads(hausumringe, model)
     print(f"Gesamtzeit: {time.time() - start}")
-    return hausumringe[hausumringe["OI"].isin(fakearray)]  # [hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
+    return hausumringe[hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
 
 
 def _prepare_dataset(df: DataFrame):
@@ -131,5 +123,5 @@ def _klassifiziere_row(model, row):
 
 if __name__ == "__main__":
     start = time.time()
-    finde_neue_daecher("test")
+    finde_neue_daecher("test", load_model())
     print(f"Gesamtdauer: {time.time() - start}")
