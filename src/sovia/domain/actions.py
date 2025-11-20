@@ -11,7 +11,6 @@ from pandas import DataFrame
 from shapely import wkt
 from sovia.infra.DatabaseConnector import get_hausumringe_in
 from sovia.infra.ImageLoader import ImageLoader
-from sovia.infra.SiameseNeuralNetwork import load_model
 from torch import nn
 
 WMS1 = "https://geodaten.metropoleruhr.de/dop/top_2023?language=ger&width=$width&height=$height&bbox=$x1,$y1,$x2,$y2&crs=EPSG:25832&format=image/png&request=GetMap&service=WMS&styles=&transparent=true&version=1.3.0&layers=top_2023"
@@ -25,12 +24,12 @@ YEAR_2 = 2024
 
 img_loader = ImageLoader([YEAR_1, YEAR_2])
 
-def finde_neue_daecher(name: str):
+def finde_neue_daecher(name: str, model):
     start = time.time()
     hausumringe = get_hausumringe_in(name)
     print(f"Hausumringe geladen: {time.time() - start}")
     _prepare_dataset(hausumringe)
-    hausumringe = _process_in_threads(hausumringe)
+    hausumringe = _process_in_threads(hausumringe, model)
     print(f"Gesamtzeit: {time.time() - start}")
     return hausumringe#[hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
 
@@ -71,7 +70,7 @@ def _google_maps_links(df: DataFrame):
     df["maps"] = df.apply(lambda x: _template(GOOGLEMAPS, x), axis=1)
 
 
-def _process_in_threads(df: DataFrame) -> DataFrame:
+def _process_in_threads(df: DataFrame, model) -> DataFrame:
     anzahl_bilder_im_ram = 1000
     anzahl_der_threads = 8
     chunks = np.array_split(df, math.ceil(len(df) / anzahl_bilder_im_ram))
@@ -86,16 +85,11 @@ def _process_in_threads(df: DataFrame) -> DataFrame:
         for thread in threads:
             thread.join()
         chunks_with_images = pd.concat(chunks_for_thread, ignore_index=True)
-        _klassifiziere(chunks_with_images)
+        _klassifiziere(chunks_with_images, model)
         verarbeitete_chunks.append(chunks_with_images[
                                        ["OI", "geom", "center", "x1", "y1", "x2", "y2", "height", "width", "link_1",
                                         "link_2", "maps", "frontend_coordinates", "klasse"]])
     return pd.concat(verarbeitete_chunks, ignore_index=True)
-
-
-def _process_chunk(chunk_for_thread: DataFrame):
-    _lade_bilder(chunk_for_thread)
-    _klassifiziere(chunk_for_thread)
 
 
 def _frontend_geometrien(row):
@@ -111,8 +105,7 @@ def _lade_bilder(df: DataFrame):
     print(f"Bilder geladen: {time.time() - start}")
 
 
-def _klassifiziere(df: DataFrame):
-    model = load_model()
+def _klassifiziere(df: DataFrame, model):
     start = time.time()
     df["klasse"] = df.apply(lambda x: _klassifiziere_row(model, x), axis=1)
     print(f"Klassifiziere: {time.time() - start}")

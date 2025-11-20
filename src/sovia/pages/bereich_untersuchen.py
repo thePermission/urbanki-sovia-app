@@ -5,6 +5,7 @@ from streamlit_folium import st_folium
 
 from sovia.domain.actions import finde_neue_daecher
 from sovia.infra.DatabaseConnector import gebiete_laden, gebiete_auflisten
+from sovia.infra.SiameseNeuralNetwork import load_model
 
 if st.session_state.get('polys') is None:
     st.session_state['polys'] = []
@@ -28,7 +29,7 @@ with right_column:
 
     def _click_untersuchen():
         with st.spinner(text="untersuche...", show_time=True):
-            findings = finde_neue_daecher(st.session_state.gebiet_to_discover)
+            findings = finde_neue_daecher(st.session_state.gebiet_to_discover, load_model_from_disk())
             st.session_state["findings"] = findings
 
 
