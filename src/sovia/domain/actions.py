@@ -37,7 +37,7 @@ def finde_neue_daecher(name: str, model):
     _prepare_dataset(hausumringe)
     hausumringe = _process_in_threads(hausumringe, model)
     print(f"Gesamtzeit: {time.time() - start}")
-    return hausumringe[hausumringe["klasse"].isin(fakearray)]  # [hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
+    return hausumringe[hausumringe["OI"].isin(fakearray)]  # [hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
 
 
 def _prepare_dataset(df: DataFrame):
