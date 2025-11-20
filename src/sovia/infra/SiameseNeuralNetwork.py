@@ -44,6 +44,6 @@ def load_model():
     device = torch.device("cpu")
     model = SiameseNetwork(SimpleEmbeddingNet())
     path = get_path_to_data(__file__) / "model/second_training_weights.pth"
-    model.load_state_dict(torch.load(path, map_location=device, weights_only=False))
+    model.load_state_dict(torch.load(path, map_location=device, weights_only=True))
     model.eval()
     return model
