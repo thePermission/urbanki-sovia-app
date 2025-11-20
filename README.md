@@ -6,14 +6,14 @@ Solar installiert wurde und allen anderen Dächern. Zur Klassifizierung werden i
 ## Installieren der Anwendung
 
 ### Nötige Vorbereitungen
-Zu Verwendung dieses Projekts ist die Installation von UV nötig. UV kann über folgende URL heruntergeladen werden:
+Zur Verwendung des Projekts ist UV erforderlich. Die Installation für UV auf verschiedenen Betriebssystemen ist hier zu finden:
+
 https://docs.astral.sh/uv/getting-started/installation/
 
-### Installation der benötigten Pakete
+Anschließend kann folgender Command ausgeführt werden:
 ```
 uv sync
 ```
-
 ## Starten der Anwendung
 ```
 uv run streamlit run .\src\sovia\main.py
@@ -21,3 +21,6 @@ uv run streamlit run .\src\sovia\main.py
 
 ## Konfiguration
 über die Datei `config.py` können die Jahre und WMS-Adressen, sowie die Klassifikationsgrenze konfiguriert werden.
+
+# Lizenz
+[Apache 2.0 Lizenz](LICENSE)
