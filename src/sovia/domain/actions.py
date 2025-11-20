@@ -9,18 +9,15 @@ import shapely
 import torch
 from pandas import DataFrame
 from shapely import wkt
+
+from sovia.config import YEAR_1, YEAR_2, WMS1, WMS2, KLASSIFIZIERUNGSGRENZE
 from sovia.infra.DatabaseConnector import get_hausumringe_in
 from sovia.infra.ImageLoader import ImageLoader
 from torch import nn
 
-WMS1 = "https://geodaten.metropoleruhr.de/dop/top_2023?language=ger&width=$width&height=$height&bbox=$x1,$y1,$x2,$y2&crs=EPSG:25832&format=image/png&request=GetMap&service=WMS&styles=&transparent=true&version=1.3.0&layers=top_2023"
-WMS2 = "https://geodaten.metropoleruhr.de/dop/top_2024?language=ger&width=$width&height=$height&bbox=$x1,$y1,$x2,$y2&crs=EPSG:25832&format=image/png&request=GetMap&service=WMS&styles=&transparent=true&version=1.3.0&layers=top_2024"
 GOOGLEMAPS = "https://www.google.com/maps/search/?api=1&query=$x,$y&hl=de"
 
-KLASSIFIZIERUNGSGRENZE = 0.5
 
-YEAR_1 = 2023
-YEAR_2 = 2024
 
 img_loader = ImageLoader([YEAR_1, YEAR_2])
 
@@ -31,7 +28,7 @@ def finde_neue_daecher(name: str, model):
     _prepare_dataset(hausumringe)
     hausumringe = _process_in_threads(hausumringe, model)
     print(f"Gesamtzeit: {time.time() - start}")
-    return hausumringe#[hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
+    return hausumringe[hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
 
 
 def _prepare_dataset(df: DataFrame):
