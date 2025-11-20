@@ -67,7 +67,7 @@ with left_column:
 findings = st.session_state.get("findings")
 if findings is not None:
     st.data_editor(
-        findings[["OI", "link_1", "link_2", "maps"]].sort_values(by=["klasse"]),
+        findings[["OI", "link_1", "link_2", "maps"]],
         column_config={
             "OI": st.column_config.TextColumn("ID"),
             "link_1": st.column_config.ImageColumn("Vorher"),
