@@ -23,4 +23,4 @@ uv run streamlit run .\src\sovia\main.py
 über die Datei `config.py` können die Jahre und WMS-Adressen, sowie die Klassifikationsgrenze konfiguriert werden.
 
 # Lizenz
-[Apache 2.0 Lizenz](LICENSE)
+[GNU General Public License v3.0](LICENSE)
