@@ -11,9 +11,8 @@ from sovia.utils.file_handling import get_path_to_data
 
 
 def create_connection():
-    con = connect(f"{get_path_to_data(__file__)}/database/database.duckdb")
+    con = connect(f"{get_path_to_data(__file__)}/database.duckdb")
     try:
-        con.sql("INSTALL spatial")
         con.sql("LOAD spatial")
     except InvalidInputException:
         pass

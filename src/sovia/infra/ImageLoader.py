@@ -13,10 +13,12 @@ from PIL.ImageFile import ImageFile
 from torch import Tensor
 from torchvision import transforms
 
+from sovia.utils.file_handling import get_path_to_data
+
 
 class ImageLoader:
 
-    img_cache_path = Path(__file__).parent.parent / "data/img_cache"
+    img_cache_path = get_path_to_data(__file__) / "img_cache"
     image_size = (224, 224)
 
     def __init__(self, years: list[int]):

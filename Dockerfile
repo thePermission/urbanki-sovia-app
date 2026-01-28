@@ -1,40 +1,33 @@
 ## ------------------------------- Builder Stage ------------------------------ ##
-FROM python:3.13.3-alpine3.21 AS builder
+FROM python:3.12.12 as builder
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-ENV UV_LINK_MODE=copy \
-    UV_COMPILE_BYTECODE=1 \
-    UV_PROJECT_ENVIRONMENT=/app
+# Definiere Argumente für den Build-Prozess
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
 
-RUN --mount=type=cache,target=/root/.cache \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync \
-        --locked \
-        --no-dev \
-        --no-install-project
+# Setze Umgebungsvariablen für uv (und andere Tools)
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+ENV no_proxy=$NO_PROXY
 
-COPY . /src
-WORKDIR /src
-RUN --mount=type=cache,target=/root/.cache \
-    uv sync \
-        --locked \
-        --no-dev \
-        --no-editable
-
-# build real image
-FROM python:3.13.3-alpine3.21 AS image
-
-COPY --from=builder --chown=app:app /app /app
-
-ENV PATH=/app/bin:$PATH
-
-STOPSIGNAL SIGINT
-
+RUN mkdir /data
+COPY data/model.pth /data/
+COPY src /src
+COPY README.md /
+COPY .streamlit /.streamlit
+COPY pyproject.toml /
+COPY .python-version /
+COPY uv.lock /
+RUN uv sync
+RUN uv run python -c "import duckdb; \
+    import os; \
+    proxy = os.getenv('http_proxy'); \
+    conn = duckdb.connect(); \
+    conn.execute(f\"SET http_proxy='{proxy}'\"); \
+    conn.execute(\"INSTALL spatial\");"
 COPY docker-entrypoint.sh /
-COPY .streamlit /
 RUN chmod +x /docker-entrypoint.sh
-WORKDIR /app
-
 ENTRYPOINT ["/docker-entrypoint.sh"]

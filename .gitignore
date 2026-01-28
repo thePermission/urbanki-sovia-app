@@ -1,4 +1,5 @@
 /.venv/*
 /.idea/*
-/src/sovia/data/database/database.duckdb
 /src/sovia/data/img_cache/
+/data/database.duckdb
+/data/img_cache/

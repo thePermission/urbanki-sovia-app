@@ -23,12 +23,11 @@ GOOGLEMAPS = "https://www.google.com/maps/search/?api=1&query=$x,$y&hl=de"
 img_loader = ImageLoader([YEAR_1, YEAR_2])
 
 def finde_neue_daecher(name: str, model):
-    start = time.time()
     hausumringe = get_hausumringe_in(name)
-    print(f"Hausumringe geladen: {time.time() - start}")
+    if len(hausumringe) == 0:
+        return []
     _prepare_dataset(hausumringe)
     hausumringe = _process_in_threads(hausumringe, model)
-    print(f"Gesamtzeit: {time.time() - start}")
     return hausumringe[hausumringe["klasse"] > KLASSIFIZIERUNGSGRENZE]
 
 

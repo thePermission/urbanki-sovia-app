@@ -1,3 +1,3 @@
- #!/bin/sh
-
- uv run streamlit run .\src\sovia\main.py
+#!/bin/sh
+#sleep infinity
+uv run streamlit run src/sovia/main.py

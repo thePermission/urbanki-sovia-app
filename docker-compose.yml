@@ -4,4 +4,8 @@ services:
     container_name: sovia
     restart: always
     ports:
-      - '8080:8080'
+      - '8080:8081'
+    volumes:
+      - db:/src/data/database
+volumes:
+  db:

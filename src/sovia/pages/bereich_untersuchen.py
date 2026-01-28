@@ -51,7 +51,7 @@ with left_column:
             )
             fg.add_child(poly)
     findings = st.session_state.get("findings")
-    if findings is not None:
+    if findings is not None and len(findings) > 0:
         for finding in list(findings["frontend_coordinates"]):
             poly = fl.Polygon(
                 locations=finding,
@@ -66,15 +66,18 @@ with left_column:
 
 findings = st.session_state.get("findings")
 if findings is not None:
-    st.data_editor(
-        findings[["OI", "link_1", "link_2", "klasse", "maps"]].sort_values(by=["klasse"]),
-        column_config={
-            "OI": st.column_config.TextColumn("ID"),
-            "link_1": st.column_config.ImageColumn("Vorher"),
-            "link_2": st.column_config.ImageColumn("Nachher"),
-            "maps": st.column_config.LinkColumn("Google Maps"),
-        },
-        hide_index=True,
-        height=800,
-        row_height=200,
-    )
+    if len(findings) == 0:
+        st.text("Es wurden keine Dächer in diesem Gebiet gefunden.")
+    else:
+        st.data_editor(
+            findings[["OI", "link_1", "link_2", "klasse", "maps"]].sort_values(by=["klasse"]),
+            column_config={
+                "OI": st.column_config.TextColumn("ID"),
+                "link_1": st.column_config.ImageColumn("Vorher"),
+                "link_2": st.column_config.ImageColumn("Nachher"),
+                "maps": st.column_config.LinkColumn("Google Maps"),
+            },
+            hide_index=True,
+            height=800,
+            row_height=200,
+        )
