@@ -3,9 +3,11 @@ services:
     image: sovia
     container_name: sovia
     restart: always
-    ports:
-      - '8080:8081'
+    environment:
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+    network_mode: host
     volumes:
-      - db:/src/data/database
+      - db:/data
 volumes:
   db:
