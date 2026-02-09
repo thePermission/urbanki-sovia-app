@@ -8,6 +8,14 @@ build:
 	    --build-arg NO_PROXY \
 	    .
 
+build-push-ready:
+	docker build --network=host \
+	    -t saschatpm/sovia:$(TAG) \
+	    --build-arg HTTP_PROXY \
+	    --build-arg HTTPS_PROXY \
+	    --build-arg NO_PROXY \
+	    .
+
 run: build
 	docker-compose up -d
 

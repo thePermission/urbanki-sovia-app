@@ -95,11 +95,8 @@ def _frontend_geometrien(row):
 
 
 def _lade_bilder(df: DataFrame):
-    start = time.time()
-
     df["imgs"] = df.apply(lambda x: img_loader.load(x["OI"], x["link_1"], x["link_2"], x["geom"]),
                           axis=1)
-    print(f"Bilder geladen: {time.time() - start}")
 
 
 def _klassifiziere(df: DataFrame, model):

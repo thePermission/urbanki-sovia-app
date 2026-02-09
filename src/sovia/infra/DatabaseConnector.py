@@ -25,7 +25,8 @@ def init():
         con.sql(
             "CREATE TABLE IF NOT EXISTS bereiche (name varchar, number int1, color varchar, geom GEOMETRY, PRIMARY KEY (name, number))")
         con.sql("CREATE TABLE IF NOT EXISTS hausumringe (name varchar)")
-        con.sql("CREATE TABLE IF NOT EXISTS klassifizierung (oi varchar, klassifizierung int)")
+        con.sql("CREATE TABLE IF NOT EXISTS klassifizierungen (oi varchar, klassifizierung FLOAT, PRIMARY KEY(oi))")
+        con.sql("CREATE TABLE IF NOT EXISTS verwaltung (oi varchar, ausblenden boolean, PRIMARY KEY(oi))")
         con.sql("CREATE TABLE IF NOT EXISTS image_url (reihenfolge varchar, link varchar, PRIMARY KEY(reihenfolge))")
 
 class Reihenfolge(Enum):
@@ -44,6 +45,15 @@ def link_speichern(reihenfolge: Reihenfolge, link: str):
     with create_connection() as con:
         con.sql(sql)
 
+def klassifizierung_speichern(klassifizierte_daten: DataFrame):
+    with create_connection() as con:
+        con.sql("INSERT OR REPLACE INTO klassifizierungen (SELECT * FROM klassifizierte_daten)")
+
+
+def ausblenden_speichern(ausbelndungen: DataFrame):
+    with create_connection() as con:
+        con.sql("INSERT OR REPLACE INTO verwaltung (SELECT * FROM ausbelndungen)")
+
 
 
 def hausumringe_speichern(filepath: Path):
@@ -58,6 +68,21 @@ def hausumringe_laden() -> DataFrame:
           """
     with create_connection() as con:
         return con.sql(sql).fetchdf()
+
+def ausblenden_zurücksetzen(gebiet_name: str):
+    sql = f"""
+        
+        WITH ausgewaehlt as (
+            SELECT * FROM bereiche
+            WHERE name='{gebiet_name}'
+        )
+        SELECT oi, false as ausblenden
+        FROM ausgewaehlt as a, hausumringe as h
+        WHERE ST_Contains(a.geom, h.geom)
+    """
+    with create_connection() as con:
+        updates = con.sql(sql).fetchdf()
+    ausblenden_speichern(updates)
 
 
 def gebiet_speichern(name: str, polygons: dict):
@@ -127,8 +152,7 @@ def gebiete_auflisten() -> list[str]:
         df = con.sql("SELECT DISTINCT name FROM bereiche ORDER BY name").fetchdf()
         return df["name"].to_list()
 
-
-def get_hausumringe_in(name: str):
+def get_ergbenisse_von(name: str):
     AUFLOESUNG = 800 * 800
     with create_connection() as con:
         sql = f"""
@@ -151,10 +175,47 @@ def get_hausumringe_in(name: str):
             round(sqrt({AUFLOESUNG}/((x2-x1)/(y2-y1))), 0)::INTEGER as height,
             round({AUFLOESUNG}/sqrt({AUFLOESUNG}/((x2-x1)/(y2-y1))), 0)::INTEGER as width,
             l.link_1,
+            l.link_2,
+            c.klassifizierung,
+            COALESCE(v.ausblenden, False) as ausblenden
+        FROM ausgewaehlt as a, hausumringe as h 
+        LEFT JOIN links as l ON 1=1
+        LEFT JOIN klassifizierungen as c on c.oi=h.oi
+        LEFT JOIN verwaltung as v on v.oi=h.oi
+        WHERE ST_Contains(a.geom, h.geom) AND NOT COALESCE(v.ausblenden, false)
+        """
+        return con.sql(sql).fetchdf()
+
+
+def get_hausumringe_in(name: str, rescan:bool):
+    AUFLOESUNG = 800 * 800
+    with create_connection() as con:
+        sql = f"""
+        WITH ausgewaehlt as (
+            SELECT * FROM bereiche
+            WHERE name='{name}'
+        ),
+        links as (
+            SELECT link_1, link_2 FROM (SELECT link as link_1 FROM image_url WHERE reihenfolge='erster') as erster
+            LEFT JOIN (SELECT link as link_2 FROM image_url WHERE reihenfolge='zweiter') as zweiter ON 1=1
+        ),
+        classified as (SELECT oi, klassifizierung FROM klassifizierungen)
+        SELECT DISTINCT 
+            h.oi,
+            ST_asText(ST_Transform(h.geom, 'EPSG:25832', 'EPSG:4326')) as geom,
+            ST_asText(ST_Transform(ST_Centroid(h.geom), 'EPSG:25832', 'EPSG:4326')) as center,
+            ST_XMin(ST_Envelope(h.geom)) as x1,
+            ST_YMIN(ST_Envelope(h.geom)) as y1,
+            ST_XMAX(ST_Envelope(h.geom)) as x2,
+            ST_YMAX(ST_Envelope(h.geom)) as y2,
+            round(sqrt({AUFLOESUNG}/((x2-x1)/(y2-y1))), 0)::INTEGER as height,
+            round({AUFLOESUNG}/sqrt({AUFLOESUNG}/((x2-x1)/(y2-y1))), 0)::INTEGER as width,
+            l.link_1,
             l.link_2
         FROM ausgewaehlt as a, hausumringe as h 
         LEFT JOIN links as l ON 1=1
-        WHERE ST_Contains(a.geom, h.geom)
+        LEFT JOIN classified as c on c.oi=h.oi
+        WHERE ST_Contains(a.geom, h.geom) AND (c.klassifizierung IS NULL OR {rescan})
         """
         return con.sql(sql).fetchdf()
 
@@ -196,3 +257,5 @@ def hausumringe_in(polygons) -> list[list[tuple[float, float]]]:
 def test(sql: str):
     with create_connection() as con:
         con.sql(sql).show()
+
+# test("SELECT * FROM verwaltung")

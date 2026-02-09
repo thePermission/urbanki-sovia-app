@@ -3,7 +3,7 @@ import streamlit as st
 from folium import FeatureGroup
 from streamlit_folium import st_folium
 
-from sovia.domain.actions import finde_neue_daecher
+from sovia.application.scan_service import scan_area
 from sovia.infra.DatabaseConnector import gebiete_laden, gebiete_auflisten
 from sovia.infra.SiameseNeuralNetwork import load_model
 
@@ -25,12 +25,16 @@ st.title("Gebiet untersuchen")
 left_column, right_column = st.columns([0.8, 0.2])
 with right_column:
     st.selectbox("Gebiete", gebiete_auflisten(), key="gebiet_to_discover")
+    st.checkbox("Rescan", False, key="rescan")
 
 
     def _click_untersuchen():
         with st.spinner(text="untersuche...", show_time=True):
-            findings = finde_neue_daecher(st.session_state.gebiet_to_discover, load_model_from_disk())
-            st.session_state["findings"] = findings
+            try:
+                scan_area(st.session_state.gebiet_to_discover, load_model_from_disk(), st.session_state.rescan)
+                st.success("Untersuchung abgeschlossen!")
+            except Exception as e:
+                st.error(f"Untersuchung fehlgeschlagen! {e}")
 
 
     st.button("untersuchen", on_click=_click_untersuchen)
@@ -50,34 +54,34 @@ with left_column:
                 tooltip=gebiet[0],
             )
             fg.add_child(poly)
-    findings = st.session_state.get("findings")
-    if findings is not None and len(findings) > 0:
-        for finding in list(findings["frontend_coordinates"]):
-            poly = fl.Polygon(
-                locations=finding,
-                color="red",
-                fill=True,
-                fill_color="red",
-                fill_opacity=1,
-            )
-            fg.add_child(poly)
+    # findings = st.session_state.get("findings")
+    # if findings is not None and len(findings) > 0:
+    #     for finding in list(findings["frontend_coordinates"]):
+    #         poly = fl.Polygon(
+    #             locations=finding,
+    #             color="red",
+    #             fill=True,
+    #             fill_color="red",
+    #             fill_opacity=1,
+    #         )
+    #         fg.add_child(poly)
     map_state = st_folium(m, use_container_width=True,
                           key="folium_map", feature_group_to_add=fg)
-
-findings = st.session_state.get("findings")
-if findings is not None:
-    if len(findings) == 0:
-        st.text("Es wurden keine Dächer in diesem Gebiet gefunden.")
-    else:
-        st.data_editor(
-            findings[["OI", "link_1", "link_2", "klasse", "maps"]].sort_values(by=["klasse"]),
-            column_config={
-                "OI": st.column_config.TextColumn("ID"),
-                "link_1": st.column_config.ImageColumn("Vorher"),
-                "link_2": st.column_config.ImageColumn("Nachher"),
-                "maps": st.column_config.LinkColumn("Google Maps"),
-            },
-            hide_index=True,
-            height=800,
-            row_height=200,
-        )
+#
+# findings = st.session_state.get("findings")
+# if findings is not None:
+#     if len(findings) == 0:
+#         st.text("Es wurden keine Dächer in diesem Gebiet gefunden.")
+#     else:
+#         st.data_editor(
+#             findings[["OI", "link_1", "link_2", "klasse", "maps"]].sort_values(by=["klasse"]),
+#             column_config={
+#                 "OI": st.column_config.TextColumn("ID"),
+#                 "link_1": st.column_config.ImageColumn("Vorher"),
+#                 "link_2": st.column_config.ImageColumn("Nachher"),
+#                 "maps": st.column_config.LinkColumn("Google Maps"),
+#             },
+#             hide_index=True,
+#             height=800,
+#             row_height=200,
+#         )
