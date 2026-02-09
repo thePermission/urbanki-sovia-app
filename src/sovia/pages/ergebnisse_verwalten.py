@@ -15,7 +15,15 @@ if st.session_state.get('zoom') is None:
     st.session_state.zoom = 14
 
 st.title("Ergebnisse verwalten")
-
+st.markdown("""
+Die Ergebnisse aus den durchgeführten Untersuchungen können hier verwaltet werden. Zuerst muss dafür ein Gebiet ausgewählt
+werden, anschließend werden sie geladen über den Button "laden". Die Klassifizierungsgrenze gibt an, ab welcher Klassifizierung
+die Ergebnisse angezeigt werden sollen. Eine Klassifizierung von 0 bedeutet, dass es sich sehr wahscheinlich nicht um ein neues
+Dach handelt, während eine Klassifizierung von 1 bedeutet, dass es sich um ein neues Dach handelt. Die Ergebnisse erscheinen
+unterhalt der Map und können dort ausgeblendet werden, sollte sich die KI geirrt haben. Dazu wird der Haken rechts in der Tabelle
+gesetzt in der Spalte "ausblenden" und anschließend der "speicher" Button gedrückt. Möchte man (beispielsweise wenn neue WMS-Server
+konfiguriert wurden) diese ausgebelendeten Hausumringe wieder einblenden muss man den Button "zurücksetzen" drücken.
+""")
 
 def _filtern():
     if st.session_state.get("findings") is not None:

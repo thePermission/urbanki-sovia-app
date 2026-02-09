@@ -22,6 +22,10 @@ draw_options = {
 }
 Draw(draw_options=draw_options, ).add_to(m)
 st.title("Gebiete bearbeiten")
+st.markdown("""
+Hier werden Gebiete erstellt und bearbeitet, damit diese anschließend einzeln gescannt werden können.
+Der Scan-Vorgang kann einige Zeit in Anspruch nehmen, daher ist es ratsam die Gebiete in kleine Einheiten zu unterteilen.
+""")
 left_column, right_column = st.columns([0.8, 0.2])
 with left_column:
     fg = FeatureGroup()

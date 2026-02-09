@@ -21,7 +21,12 @@ def load_model_from_disk():
 
 
 st.title("Gebiet untersuchen")
-
+st.markdown("""
+Hier kann ein Gebiet ausgewählt werden, das dann untersucht wird. Die Ergebnisse werden anschließend gespeichert und 
+können in [Ergebnisse verwalten](/ergebnisse_verwalten) angezeigt werden. Normalerweise werden nur Hausumringe untersucht,
+die noch nicht untersucht wurden. Möchte man die bisherigen Ergebnisse für dieses Gebiet überschreiben kann man den Haken
+setzen bei "Rescan".
+""")
 left_column, right_column = st.columns([0.8, 0.2])
 with right_column:
     st.selectbox("Gebiete", gebiete_auflisten(), key="gebiet_to_discover")

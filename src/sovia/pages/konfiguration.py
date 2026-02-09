@@ -37,9 +37,17 @@ def link_konfiguration():
 
 def main():
     st.title("Konfiguration")
-    st.text("Hier können die Hausumringe hochgeladen werden.")
+    st.markdown("""
+    ## Hausumringe
+    Zuerst müssen die Hausumringe hochgeladen werden. Bisher wurden die Hausumringe von der Seite 
+    https://www.opengeodata.nrw.de/produkte/geobasis/lk/akt/hu_shp/ bezogen.
+    Dort kann eine Zip-Datei heruntergeladen werden, die hier hochgeladen werden kann.
+    """)
     st.file_uploader("Hausumringe hochladen", key="hausumringe_upload", on_change=upload_file, type=["zip"])
-    st.text("Hier können die Links konfiguriert werden.")
+    st.markdown("""
+    ## WMS-Server
+    Dannach müssen die beiden WMS-Server eingerichtet werden, von denen die Bilddaten bezogen werden sollen.
+    """)
     link_konfiguration()
 
 
