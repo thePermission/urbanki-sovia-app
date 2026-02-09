@@ -10,7 +10,7 @@ import torch
 from pandas import DataFrame
 from shapely import wkt
 
-from sovia.config import YEAR_1, YEAR_2, WMS1, WMS2, KLASSIFIZIERUNGSGRENZE
+from sovia.config import KLASSIFIZIERUNGSGRENZE
 from sovia.infra.DatabaseConnector import get_hausumringe_in
 from sovia.infra.ImageLoader import ImageLoader
 from torch import nn
@@ -20,7 +20,7 @@ from sovia.infra.SiameseNeuralNetwork import load_model
 GOOGLEMAPS = "https://www.google.com/maps/search/?api=1&query=$x,$y&hl=de"
 
 
-img_loader = ImageLoader([YEAR_1, YEAR_2])
+img_loader = ImageLoader()
 
 def finde_neue_daecher(name: str, model):
     hausumringe = get_hausumringe_in(name)
@@ -40,7 +40,7 @@ def _prepare_dataset(df: DataFrame):
 
 
 def _wms_links(df: DataFrame):
-    def _template(base: str, row):
+    def _template(name: str, row):
         params = {
             "width": row["width"],
             "height": row["height"],
@@ -49,10 +49,10 @@ def _wms_links(df: DataFrame):
             "y1": row["y1"],
             "y2": row["y2"],
         }
-        return Template(base).substitute(params)
+        return Template(row[name]).substitute(params)
 
-    df["link_1"] = df.apply(lambda x: _template(WMS1, x), axis=1)
-    df["link_2"] = df.apply(lambda x: _template(WMS2, x), axis=1)
+    df["link_1"] = df.apply(lambda x: _template("link_1", x), axis=1)
+    df["link_2"] = df.apply(lambda x: _template("link_2", x), axis=1)
 
 
 def _google_maps_links(df: DataFrame):
@@ -97,7 +97,7 @@ def _frontend_geometrien(row):
 def _lade_bilder(df: DataFrame):
     start = time.time()
 
-    df["imgs"] = df.apply(lambda x: img_loader.load(x["OI"], YEAR_1, x["link_1"], YEAR_2, x["link_2"], x["geom"]),
+    df["imgs"] = df.apply(lambda x: img_loader.load(x["OI"], x["link_1"], x["link_2"], x["geom"]),
                           axis=1)
     print(f"Bilder geladen: {time.time() - start}")
 

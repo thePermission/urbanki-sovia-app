@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 
 import numpy as np
@@ -24,6 +25,25 @@ def init():
         con.sql(
             "CREATE TABLE IF NOT EXISTS bereiche (name varchar, number int1, color varchar, geom GEOMETRY, PRIMARY KEY (name, number))")
         con.sql("CREATE TABLE IF NOT EXISTS hausumringe (name varchar)")
+        con.sql("CREATE TABLE IF NOT EXISTS klassifizierung (oi varchar, klassifizierung int)")
+        con.sql("CREATE TABLE IF NOT EXISTS image_url (reihenfolge varchar, link varchar, PRIMARY KEY(reihenfolge))")
+
+class Reihenfolge(Enum):
+    ERSTER = "erster"
+    ZWEITER = "zweiter"
+
+def links_laden() -> DataFrame:
+    with create_connection() as con:
+        return con.sql("SELECT DISTINCT reihenfolge, link FROM image_url").fetchdf().set_index("reihenfolge")
+
+def link_speichern(reihenfolge: Reihenfolge, link: str):
+    sql = f"""
+    INSERT OR REPLACE INTO image_url (reihenfolge, link) 
+    VALUES ('{reihenfolge.value}', '{link}');
+    """
+    with create_connection() as con:
+        con.sql(sql)
+
 
 
 def hausumringe_speichern(filepath: Path):
@@ -115,6 +135,10 @@ def get_hausumringe_in(name: str):
         WITH ausgewaehlt as (
             SELECT * FROM bereiche
             WHERE name='{name}'
+        ),
+        links as (
+            SELECT link_1, link_2 FROM (SELECT link as link_1 FROM image_url WHERE reihenfolge='erster') as erster
+            LEFT JOIN (SELECT link as link_2 FROM image_url WHERE reihenfolge='zweiter') as zweiter ON 1=1
         )
         SELECT DISTINCT 
             h.oi,
@@ -125,16 +149,14 @@ def get_hausumringe_in(name: str):
             ST_XMAX(ST_Envelope(h.geom)) as x2,
             ST_YMAX(ST_Envelope(h.geom)) as y2,
             round(sqrt({AUFLOESUNG}/((x2-x1)/(y2-y1))), 0)::INTEGER as height,
-            round({AUFLOESUNG}/sqrt({AUFLOESUNG}/((x2-x1)/(y2-y1))), 0)::INTEGER as width
+            round({AUFLOESUNG}/sqrt({AUFLOESUNG}/((x2-x1)/(y2-y1))), 0)::INTEGER as width,
+            l.link_1,
+            l.link_2
         FROM ausgewaehlt as a, hausumringe as h 
+        LEFT JOIN links as l ON 1=1
         WHERE ST_Contains(a.geom, h.geom)
         """
         return con.sql(sql).fetchdf()
-        # coords = []
-        # for wkt_geom in df["geom"]:
-        #     shapely_geom = wkt.loads(wkt_geom)
-        #     coords.append([(x, y) for x, y in shapely_geom.exterior.coords])
-        # return coords
 
 
 def hausumringe_in(polygons) -> list[list[tuple[float, float]]]:

@@ -3,7 +3,7 @@ runOnSave = true
 maxUploadSize = 10000
 enableCORS = false
 enableXsrfProtection = false
-port = 8081
+port = 8080
 
 [browser]
 #serverAddress = "localhost"

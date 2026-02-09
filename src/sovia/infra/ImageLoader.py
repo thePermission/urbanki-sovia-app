@@ -1,3 +1,4 @@
+import hashlib
 import os
 import time
 from io import BytesIO
@@ -21,48 +22,41 @@ class ImageLoader:
     img_cache_path = get_path_to_data(__file__) / "img_cache"
     image_size = (224, 224)
 
-    def __init__(self, years: list[int]):
-        self._init_dirs(years)
+    def __init__(self):
         self.transformer = transforms.Compose([
             transforms.Resize(self.image_size),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
 
-    def _init_dirs(self, years: list[int]):
-        if not os.path.isdir(self.img_cache_path):
-            os.mkdir(self.img_cache_path)
-        for year in years:
-            if not os.path.isdir(self.img_cache_path / str(year)):
-                os.mkdir(self.img_cache_path / str(year))
-
-    def load(self, oi, year_1, link_1, year_2, link_2, geom) -> tuple[Tensor, Tensor]:
-        image_1 = self._load_image(oi, year_1, link_1)
-        image_2 = self._load_image(oi, year_2, link_2)
+    def load(self, oi, link_1, link_2, geom) -> tuple[Tensor, Tensor]:
+        image_1 = self._load_image(oi, link_1)
+        image_2 = self._load_image(oi, link_2)
         mask_tensor = self._prepare_mask(geom)
         return self._prepare_image(image_1, mask_tensor), self._prepare_image(image_2, mask_tensor)
 
-    def _load_img_from_file(self, polygon_id: str, year: str) -> ImageFile:
-        return Image.open(self._get_filepath(polygon_id, year))
+    def _load_img_from_file(self, polygon_id: str, hash_str: str) -> ImageFile:
+        return Image.open(self._get_filepath(polygon_id, hash_str))
 
-    def _load_image(self, polygon_id, year, link) -> ImageFile:
-        if not self._file_exists(polygon_id, year):
-            self._download_from_url(polygon_id, year, link)
-        return self._load_img_from_file(polygon_id, year)
+    def _load_image(self, polygon_id, link) -> ImageFile:
+        hash_str = hashlib.md5(link.encode()).hexdigest()
+        if not self._file_exists(polygon_id, hash_str):
+            self._download_from_url(polygon_id, hash_str, link)
+        return self._load_img_from_file(polygon_id, hash_str)
 
-    def _file_exists(self, polygon_id: str, year: str):
-        return os.path.isfile(self._get_filepath(polygon_id, str(year)))
+    def _file_exists(self, polygon_id: str, hash_str: str):
+        return os.path.isfile(self._get_filepath(polygon_id, hash_str))
 
-    def _get_filepath(self, polygon_id: str, year: str) -> Path:
-        return self.img_cache_path / str(year) / f"{polygon_id}.png"
+    def _get_filepath(self, polygon_id: str, hash_str: str) -> Path:
+        return self.img_cache_path / f"{polygon_id}-{hash_str}.png"
 
-    def _download_from_url(self, polygon_id: str, year: str, link: str):
+    def _download_from_url(self, polygon_id: str, hash_str: str, link: str):
         while True:
             try:
                 response = requests.get(link, stream=True, timeout=5)
                 response.raise_for_status()
                 image = Image.open(BytesIO(response.content))
-                image.save(self._get_filepath(polygon_id, year))
+                image.save(self._get_filepath(polygon_id, hash_str))
                 break
             except Exception as e:
                 print("Bild konnte nicht geladen werden.", e, link)
@@ -70,9 +64,6 @@ class ImageLoader:
 
     def _prepare_mask(self, polygon_points: str, activation_value=255) -> Tensor:
         height, width = self.image_size
-        # Validate image size
-        if not (isinstance(height, (int, np.integer)) and isinstance(width, (int, np.integer))):
-            raise ValueError("image_shape must be a tuple (height:int, width:int)")
         if height <= 0 or width <= 0:
             raise ValueError(f"image_shape must be positive; got {(height, width)}")
 
