@@ -16,13 +16,49 @@ if st.session_state.get('zoom') is None:
 
 st.title("Ergebnisse verwalten")
 st.markdown("""
-Die Ergebnisse aus den durchgeführten Untersuchungen können hier verwaltet werden. Zuerst muss dafür ein Gebiet ausgewählt
-werden, anschließend werden sie geladen über den Button "laden". Die Klassifizierungsgrenze gibt an, ab welcher Klassifizierung
-die Ergebnisse angezeigt werden sollen. Eine Klassifizierung von 0 bedeutet, dass es sich sehr wahscheinlich nicht um ein neues
-Dach handelt, während eine Klassifizierung von 1 bedeutet, dass es sich um ein neues Dach handelt. Die Ergebnisse erscheinen
-unterhalt der Map und können dort ausgeblendet werden, sollte sich die KI geirrt haben. Dazu wird der Haken rechts in der Tabelle
-gesetzt in der Spalte "ausblenden" und anschließend der "speicher" Button gedrückt. Möchte man (beispielsweise wenn neue WMS-Server
-konfiguriert wurden) diese ausgebelendeten Hausumringe wieder einblenden muss man den Button "zurücksetzen" drücken.
+
+In diesem Modul können Sie die Analyseergebnisse sichten, validieren und die Datenqualität durch manuelles Feedback optimieren.
+
+### Daten abrufen
+
+Um die Ergebnisse einer Untersuchung anzuzeigen, gehen Sie wie folgt vor:
+
+1.  **Gebietsauswahl:** Wählen Sie das gewünschte Untersuchungsgebiet aus der Liste aus.
+    
+2.  **Klassifizierungsgrenze festlegen:** Bestimmen Sie über den Schwellenwert, welche Ergebnisse eingeblendet werden sollen.
+    
+    -   Der Wert **0** steht für eine geringe Wahrscheinlichkeit einer baulichen Veränderung (kein neues Dach).
+        
+    -   Der Wert **1** signalisiert eine sehr hohe Wahrscheinlichkeit für ein neu eingedecktes Dach.
+        
+3.  **Laden:** Klicken Sie auf die Schaltfläche **„Laden“**, um die entsprechenden Datensätze unterhalb der Karte anzuzeigen.
+    
+
+----------
+
+### Ergebnisse validieren und filtern
+
+Die KI-gestützte Analyse dient als Entscheidungshilfe. Sollte das System ein Objekt fehlerhaft eingestuft haben, können Sie dies manuell korrigieren:
+
+#### Hausumringe ausblenden
+
+Falls ein identifiziertes Objekt nicht relevant ist (z. B. bei einer Fehlklassifizierung durch die KI):
+
+-   Aktivieren Sie in der Ergebnistabelle das Kontrollkästchen in der Spalte **„Ausblenden“**.
+    
+-   Bestätigen Sie die Auswahl durch Klicken auf den Button **„Speichern“**. Das Objekt wird daraufhin aus der aktiven Ansicht entfernt.
+    
+
+#### Ansicht zurücksetzen
+
+Falls Sie ausgeblendete Objekte wieder sichtbar machen möchten – beispielsweise nach der Konfiguration neuer WMS-Server oder zur erneuten Prüfung:
+
+-   Nutzen Sie die Schaltfläche **„Zurücksetzen“**. Dadurch werden alle zuvor ausgeblendeten Hausumringe des gewählten Gebiets wieder in der Liste und auf der Karte angezeigt.
+    
+
+----------
+
+> **Tipp:** Nutzen Sie die Klassifizierungsgrenze als Filter, um sich zunächst auf die eindeutigen Fälle (nahe 1) zu konzentrieren und so Ihre Prüfprozesse zu beschleunigen.
 """)
 
 def _filtern():

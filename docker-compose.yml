@@ -1,6 +1,6 @@
 services:
   sovia:
-    image: saschatpm/sovia:0.0.4
+    image: saschatpm/sovia:0.0.5
     container_name: sovia
     restart: always
     environment:

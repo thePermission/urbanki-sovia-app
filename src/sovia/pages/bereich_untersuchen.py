@@ -22,10 +22,24 @@ def load_model_from_disk():
 
 st.title("Gebiet untersuchen")
 st.markdown("""
-Hier kann ein Gebiet ausgewählt werden, das dann untersucht wird. Die Ergebnisse werden anschließend gespeichert und 
-können in [Ergebnisse verwalten](/ergebnisse_verwalten) angezeigt werden. Normalerweise werden nur Hausumringe untersucht,
-die noch nicht untersucht wurden. Möchte man die bisherigen Ergebnisse für dieses Gebiet überschreiben kann man den Haken
-setzen bei "Rescan".
+
+In diesem Bereich starten Sie die automatisierte Prüfung Ihrer vordefinierten Gebiete. Der Prozess gliedert sich in die Auswahl, die Analyse und die anschließende Verwaltung der Daten.
+
+#### Analyse starten
+
+1.  **Gebietsauswahl:** Wählen Sie aus der Liste das gewünschte Untersuchungsgebiet aus.
+    
+2.  **Verarbeitung:** Das System prüft die im Gebiet enthaltenen Hausumringe auf die Einhaltung der Solarpflicht.
+    
+3.  **Speicherung:** Nach Abschluss der Analyse werden alle Ergebnisse automatisch gesichert. Diese können Sie jederzeit unter dem Menüpunkt **[Ergebnisse verwalten](https://www.google.com/search?q=/ergebnisse_verwalten)** einsehen und bearbeiten.
+
+#### Analyse-Modus: Neuprüfung vs. Rescan
+
+Um Zeit und Ressourcen zu sparen, arbeitet das System standardmäßig effizient:
+
+-   **Standard-Modus:** Es werden nur Hausumringe untersucht, für die bisher **keine Ergebnisse** vorliegen. So vermeiden Sie redundante Prüfungen bereits bekannter Objekte.
+    
+-   **Option „Rescan“:** Falls Sie bestehende Daten aktualisieren oder das gesamte Gebiet vollständig neu bewerten möchten, aktivieren Sie das Kontrollkästchen **"Rescan"**. Hierdurch werden bereits vorhandene Analyseergebnisse überschrieben und durch aktuelle Daten ersetzt.
 """)
 left_column, right_column = st.columns([0.8, 0.2])
 with right_column:
