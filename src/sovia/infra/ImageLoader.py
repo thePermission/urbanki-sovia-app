@@ -23,11 +23,19 @@ class ImageLoader:
     image_size = (224, 224)
 
     def __init__(self):
+        self._ensure_cache_directory()
+
         self.transformer = transforms.Compose([
             transforms.Resize(self.image_size),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
+
+    def _ensure_cache_directory(self):
+        """Überprüft ob der img_cache_path existiert und erstellt ihn falls nötig."""
+        if not self.img_cache_path.exists():
+            self.img_cache_path.mkdir(parents=True, exist_ok=True)
+            print(f"Cache-Ordner erstellt: {self.img_cache_path}")
 
     def load(self, oi, link_1, link_2, geom) -> tuple[Tensor, Tensor]:
         image_1 = self._load_image(oi, link_1)
