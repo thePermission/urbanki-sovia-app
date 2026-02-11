@@ -40,7 +40,7 @@ def main():
     st.markdown("""
     ## Hausumringe
     Zuerst müssen die Hausumringe hochgeladen werden. Bisher wurden die Hausumringe von der Seite 
-    https://www.opengeodata.nrw.de/produkte/geobasis/lk/akt/hu_shp/ bezogen.
+    https://www.opengeodata.nrw.de/produkte/geobasis/ bezogen.
     Dort kann eine Zip-Datei heruntergeladen werden, die hier hochgeladen werden kann.
     """)
     st.file_uploader("Hausumringe hochladen", key="hausumringe_upload", on_change=upload_file, type=["zip"])
