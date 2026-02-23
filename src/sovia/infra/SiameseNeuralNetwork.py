@@ -30,14 +30,68 @@ class SimpleEmbeddingNet(nn.Module):
 
 
 class SiameseNetwork(nn.Module):
-    def __init__(self, embedding_net):
+    def __init__(
+            self,
+            embedding_net,
+            *,
+            init_scale: float = 10.0,
+            init_margin: float = 1.0,
+            learnable_margin: bool = True,
+            learnable_scale: bool = False,
+    ):
         super().__init__()
         self.embedding_net = embedding_net  # For example, a simple CNN
+
+        if init_scale <= 0:
+            raise ValueError("init_scale must be > 0")
+
+        self._scale_param = nn.Parameter(torch.tensor(float(init_scale)), requires_grad=learnable_scale)
+
+        if learnable_margin:
+            self.margin = nn.Parameter(torch.tensor(float(init_margin)), requires_grad=True)
+        else:
+            self.register_buffer("margin", torch.tensor(float(init_margin)), persistent=True)
+
+    @property
+    def scale(self) -> torch.Tensor:
+        # garantiert > 0 und numerisch stabil
+        return F.softplus(self._scale_param)
 
     def forward(self, x1, x2):
         out1 = self.embedding_net(x1)
         out2 = self.embedding_net(x2)
         return out1, out2
+
+    def forward_with_classification(self, x1, x2):
+        """Neue Methode die Sigmoid-Similarity zurückgibt"""
+        out1 = self.embedding_net(x1)
+        out2 = self.embedding_net(x2)
+        # Distanz berechnen
+        dist = torch.nn.functional.pairwise_distance(out1, out2)
+        similarity = torch.sigmoid(dist)
+        return similarity
+
+    def forward_with_logits(self, x1, x2):
+        """
+        Gibt einen Logit zurück (unbounded), geeignet für BCEWithLogits/FocalLossLogit.
+        Wichtig: KEIN Sigmoid hier anwenden.
+
+        In deinem Fall bedeutet label=1: "Bilder sind unterschiedlich" (difference).
+        Deshalb wollen wir:
+          - kleine Distanz => niedriger Logit => p~0 (nicht unterschiedlich)
+          - große Distanz  => hoher Logit   => p~1 (unterschiedlich)
+        """
+        out1 = self.embedding_net(x1)
+        out2 = self.embedding_net(x2)
+        dist = torch.nn.functional.pairwise_distance(out1, out2)
+        logits = self.scale * (dist - self.margin)
+        return logits
+
+    def forward_with_probability(self, x1, x2):
+        """Nur für Inferenz/Metriken: Wahrscheinlichkeit (difference) aus Logit."""
+        logits = self.forward_with_logits(x1, x2)
+        prob = torch.sigmoid(logits)
+        return prob
 
 
 def load_model():

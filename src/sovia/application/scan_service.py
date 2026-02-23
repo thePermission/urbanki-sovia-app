@@ -7,6 +7,7 @@ from sovia.infra.DatabaseConnector import get_hausumringe_in, klassifizierung_sp
 from sovia.infra.ImageLoader import ImageLoader
 import pandas as pd
 import numpy as np
+from sovia.infra.SiameseNeuralNetwork import SiameseNetwork
 from torch import nn
 
 img_loader = ImageLoader()
@@ -60,12 +61,11 @@ def _klassifiziere(df: pd.DataFrame, model):
     df["klasse"] = df.apply(lambda x: _klassifiziere_row(model, x), axis=1)
 
 
-def _klassifiziere_row(model, row):
+def _klassifiziere_row(model: SiameseNetwork, row):
     try:
         with torch.no_grad():
-            output1, output2 = model(row["imgs"][0].unsqueeze(0), row["imgs"][1].unsqueeze(0))
-            distance = nn.functional.pairwise_distance(output1, output2)
-            return distance.item()
+            classification = model.forward_with_probability(row["imgs"][0].unsqueeze(0), row["imgs"][1].unsqueeze(0))
+            return classification
     except Exception as e:
         print(e)
         return float(0)
